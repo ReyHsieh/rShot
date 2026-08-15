@@ -34,8 +34,12 @@
 - 编辑器内一键：渲染含标注成品 → 复制 → 弹出可编辑结果面板
 
 ### 设置
+- **开机自启动**（SMAppService 登录项）
+- **Dock 图标显示开关**（默认仅驻留菜单栏，可切换为同时显示在 Dock）
 - 全局快捷键自定义（任何 App 前台响应，[KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts)）
 - 默认保存路径、图片格式、自动复制/自动保存开关、OCR 语言
+
+菜单栏图标使用自管理 `NSStatusItem`（含 autosaveName）：系统"菜单栏项目"设置中的显示/移除/位置管理可正确生效与持久化。
 
 ## 构建
 

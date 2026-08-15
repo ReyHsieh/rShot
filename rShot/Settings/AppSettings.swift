@@ -18,6 +18,7 @@ final class AppSettings: ObservableObject {
     @AppStorage("autoCopy") var autoCopy: Bool = true
     @AppStorage("autoSaveToFolder") var autoSaveToFolder: Bool = false
     @AppStorage("ocrLanguage") var ocrLanguageRaw: String = OCRLanguage.zhAndEn.rawValue
+    @AppStorage("showInDock") var showInDock: Bool = false
 
     var ocrLanguage: OCRLanguage {
         get { OCRLanguage(rawValue: ocrLanguageRaw) ?? .zhAndEn }

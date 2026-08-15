@@ -81,6 +81,16 @@ final class AppState: ObservableObject {
         }
     }
 
+    /// 打开设置窗口（AppKit 菜单调用：触发 SwiftUI Settings scene）
+    func openSettings() {
+        if #available(macOS 14.0, *) {
+            NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        } else {
+            NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
     // MARK: - OCR 结果
 
     func openOCRWindow() {

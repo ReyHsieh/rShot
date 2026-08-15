@@ -23,6 +23,7 @@
 		A1BE00000000000000000001 /* ToastCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BE00000000000000000001 /* ToastCenter.swift */; };
 		A1FE00000000000000000002 /* Hotkeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FE00000000000000000001 /* Hotkeys.swift */; };
 		A1FE00000000000000000003 /* WindowPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FE00000000000000000002 /* WindowPicker.swift */; };
+		A1FE00000000000000000004 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FE00000000000000000003 /* StatusBarController.swift */; };
 		TA1000000000000000000001 /* AnnotationModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB1000000000000000000001 /* AnnotationModelTests.swift */; };
 		TA1000000000000000000002 /* AnnotationDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB1000000000000000000002 /* AnnotationDocumentTests.swift */; };
 		TA1000000000000000000003 /* OutputAndSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB1000000000000000000003 /* OutputAndSettingsTests.swift */; };
@@ -51,6 +52,7 @@
 		B1BE00000000000000000003 /* MosaicRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MosaicRenderer.swift; sourceTree = "<group>"; };
 		B1FE00000000000000000001 /* Hotkeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Hotkeys.swift; sourceTree = "<group>"; };
 		B1FE00000000000000000002 /* WindowPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPicker.swift; sourceTree = "<group>"; };
+		B1FE00000000000000000003 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		TB1000000000000000000001 /* AnnotationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationModelTests.swift; sourceTree = "<group>"; };
 		TB1000000000000000000002 /* AnnotationDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationDocumentTests.swift; sourceTree = "<group>"; };
 		TB1000000000000000000003 /* OutputAndSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputAndSettingsTests.swift; sourceTree = "<group>"; };
@@ -120,6 +122,7 @@
 				B10000000000000000000002 /* AppState.swift */,
 				B1BE00000000000000000001 /* ToastCenter.swift */,
 				B1FE00000000000000000001 /* Hotkeys.swift */,
+				B1FE00000000000000000003 /* StatusBarController.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -280,6 +283,7 @@
 				A1BE00000000000000000001 /* ToastCenter.swift in Sources */,
 				A1FE00000000000000000002 /* Hotkeys.swift in Sources */,
 				A1FE00000000000000000003 /* WindowPicker.swift in Sources */,
+				A1FE00000000000000000004 /* StatusBarController.swift in Sources */,
 				A1BE00000000000000000002 /* OCRPanelController.swift in Sources */,
 				A1BE00000000000000000003 /* MosaicRenderer.swift in Sources */,
 			);

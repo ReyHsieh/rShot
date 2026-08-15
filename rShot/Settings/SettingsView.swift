@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import ServiceManagement
 import KeyboardShortcuts
 
 struct SettingsView: View {
@@ -34,9 +35,22 @@ struct SettingsView: View {
 
 struct GeneralTab: View {
     @ObservedObject private var settings = AppSettings.shared
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
 
     var body: some View {
         Form {
+            Section("启动") {
+                Toggle("登录时自动启动", isOn: $launchAtLogin)
+                if SMAppService.mainApp.status == .requiresApproval {
+                    Text("需在「系统设置 → 通用 → 登录项」中手动允许 rShot")
+                        .font(.caption).foregroundStyle(.orange)
+                }
+            }
+            Section("界面") {
+                Toggle("在 Dock 中显示图标", isOn: $settings.showInDock)
+                Text("关闭时仅驻留菜单栏（默认）；开启后图标同时显示在 Dock。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Section("保存") {
                 LabeledContent("默认保存路径") {
                     HStack {
@@ -57,6 +71,22 @@ struct GeneralTab: View {
         }
         .formStyle(.grouped)
         .padding()
+        .onChange(of: launchAtLogin) { enabled in
+            do {
+                if enabled {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                NSLog("[rShot] 登录项设置失败: \(error)")
+                launchAtLogin = SMAppService.mainApp.status == .enabled
+            }
+        }
+        .onChange(of: settings.showInDock) { show in
+            // 运行时切换 activationPolicy（启动期调用会与 Scene 初始化死锁，此处安全）
+            NSApp.setActivationPolicy(show ? .regular : .accessory)
+        }
     }
 
     private func pickFolder() {
