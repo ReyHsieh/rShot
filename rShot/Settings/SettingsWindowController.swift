@@ -43,7 +43,9 @@ final class SettingsWindowController {
     func resizeToFit() {
         guard let p = panel,
               let hosting = p.contentView as? NSHostingView<SettingsView> else { return }
-        let fit = hosting.sizeThatFits(NSSize(width: 460, height: .greatestFiniteMagnitude))
+        hosting.frame.size.width = 460
+        hosting.layoutSubtreeIfNeeded()
+        let fit = hosting.fittingSize
         let height = min(max(fit.height, 320), 700)
         p.setContentSize(NSSize(width: 460, height: height))
     }
