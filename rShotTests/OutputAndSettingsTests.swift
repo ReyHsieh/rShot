@@ -12,9 +12,16 @@ import AppKit
 final class OutputAndSettingsTests: XCTestCase {
 
     private var tmpDir: String!
+    /// 测试会改动宿主 app 的 UserDefaults（TEST_HOST 同进程），
+    /// 必须备份并在 tearDown 恢复，否则污染用户真实设置（如保存路径被改成临时目录）
+    private var savedDefaults: [String: Any] = [:]
+    private let touchedKeys = ["saveFolderPath", "imageFormat", "autoSaveToFolder"]
 
     override func setUp() {
         super.setUp()
+        savedDefaults = touchedKeys.reduce(into: [:]) { dict, key in
+            if let v = UserDefaults.standard.object(forKey: key) { dict[key] = v }
+        }
         tmpDir = NSTemporaryDirectory() + "/rShotTests-\(UUID().uuidString)"
         UserDefaults.standard.set(tmpDir, forKey: "saveFolderPath")
         try? FileManager.default.createDirectory(atPath: tmpDir,
@@ -22,6 +29,14 @@ final class OutputAndSettingsTests: XCTestCase {
     }
 
     override func tearDown() {
+        // 恢复用户原始设置（未设置过的 key 移除测试值）
+        for key in touchedKeys {
+            if let v = savedDefaults[key] {
+                UserDefaults.standard.set(v, forKey: key)
+            } else {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
         if let d = tmpDir { try? FileManager.default.removeItem(atPath: d) }
         super.tearDown()
     }
