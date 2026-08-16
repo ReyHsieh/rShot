@@ -27,7 +27,10 @@ struct SettingsView: View {
                 Label("OCR", systemImage: "text.viewfinder")
             }.tag(2)
         }
-        .frame(minWidth: 460, minHeight: 400)   // 贴合内容的高度，整体方正协调
+        .frame(minWidth: 460)   // 宽固定；高度由内容决定，窗口随 tab 自适应
+        .onChange(of: tab) { _ in
+            SettingsWindowController.shared.resizeToFit()
+        }
     }
 }
 
