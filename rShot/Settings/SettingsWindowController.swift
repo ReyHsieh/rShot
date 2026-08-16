@@ -23,7 +23,7 @@ final class SettingsWindowController {
             return
         }
 
-        let p = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 480, height: 380),
+        let p = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 500, height: 500),
                         styleMask: [.titled, .closable, .miniaturizable],
                         backing: .buffered, defer: false)
         p.title = "rShot 设置"

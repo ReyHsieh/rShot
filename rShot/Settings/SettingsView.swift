@@ -27,7 +27,7 @@ struct SettingsView: View {
                 Label("OCR", systemImage: "text.viewfinder")
             }.tag(2)
         }
-        .frame(width: 460, height: 340)
+        .frame(minWidth: 480, minHeight: 460)   // 方正比例；高度不写死，内容单屏放下
     }
 }
 
@@ -39,17 +39,13 @@ struct GeneralTab: View {
 
     var body: some View {
         Form {
-            Section("启动") {
+            Section("通用") {
                 Toggle("登录时自动启动", isOn: $launchAtLogin)
                 if SMAppService.mainApp.status == .requiresApproval {
-                    Text("需在「系统设置 → 通用 → 登录项」中手动允许 rShot")
+                    Text("需在 系统设置 → 通用 → 登录项 中允许")
                         .font(.caption).foregroundStyle(.orange)
                 }
-            }
-            Section("界面") {
                 Toggle("在 Dock 中显示图标", isOn: $settings.showInDock)
-                Text("关闭时仅驻留菜单栏（默认）；开启后图标同时显示在 Dock。")
-                    .font(.caption).foregroundStyle(.secondary)
             }
             Section("保存") {
                 LabeledContent("默认保存路径") {
