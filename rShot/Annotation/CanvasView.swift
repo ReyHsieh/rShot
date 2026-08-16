@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct CanvasView: View {
     @ObservedObject var doc: AnnotationDocument
@@ -16,7 +17,6 @@ struct CanvasView: View {
     @State private var draftPoints: [CGPoint] = []
     @State private var editingTextID: UUID? = nil
     @State private var textDraft: String = ""
-    @FocusState private var textFocused: Bool
 
     /// 底图 CGImage（供马赛克像素化取样）
     private var sourceCGImage: CGImage? {
@@ -106,36 +106,38 @@ struct CanvasView: View {
 
     // MARK: - 文本就地编辑
 
-    /// 输入框与最终渲染共用同一锚点（固定宽 + 左对齐 + frame.minX 左缘），
-    /// 提交后文字不跳位；编辑态即显示最终样式 + 边框环提示编辑中
+    /// 多行编辑（IMETextEditor）：Enter 换行、⌘Enter 提交、失焦自动提交、ESC 取消。
+    /// 尺寸随输入自适应（含拼音组合串，横向优雅展开），顶部锚定向下生长。
     private func textEditorField(for item: Annotation) -> some View {
-        TextField("输入文字…", text: bindingForDraft(of: item))
-            .textFieldStyle(.plain)
-            .font(.system(size: item.fontSize, weight: .medium))
-            .foregroundColor(item.textStyle == .boxed ? .white : Color(hex: item.colorHex))
-            .padding(.horizontal, 7).padding(.vertical, 2)
-            .background(
-                // 底框模式：彩底；透明模式：无底
-                Group {
-                    if item.textStyle == .boxed {
-                        RoundedRectangle(cornerRadius: 4).fill(Color(hex: item.colorHex))
-                    }
-                }
-            )
-            .overlay(RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.accentColor.opacity(0.9), lineWidth: 1.5))
-            .frame(width: AnnotationTextLayout.width, alignment: .leading)
-            .position(x: AnnotationTextLayout.anchorX(for: item),
-                      y: AnnotationTextLayout.anchorY(for: item))
-            .focused($textFocused)
-            .onSubmit { commitTextEditing(item) }
-            .onExitCommand { cancelTextEditing(item) }
-            .onChange(of: textFocused) { focused in
+        let box = AnnotationTextLayout.boxSize(for: textDraft,
+                                               fontSize: item.fontSize,
+                                               isEditing: true)
+        return IMETextEditor(
+            text: bindingForDraft(of: item),
+            fontSize: item.fontSize,
+            textColor: item.textStyle == .boxed
+                ? .white
+                : NSColor(Color(hex: item.colorHex)),
+            onCommit: { commitTextEditing(item) },
+            onCancel: { cancelTextEditing(item) },
+            onEndEditing: {
                 // 失焦即提交：点工具栏/画布去做别的事时，文字不丢失（空则删）
-                if !focused, editingTextID == item.id {
-                    commitTextEditing(item)
+                if editingTextID == item.id { commitTextEditing(item) }
+            }
+        )
+        .background(
+            // 底框模式：彩底；透明模式：无底
+            Group {
+                if item.textStyle == .boxed {
+                    RoundedRectangle(cornerRadius: 4).fill(Color(hex: item.colorHex))
                 }
             }
+        )
+        .overlay(RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.accentColor.opacity(0.9), lineWidth: 1.5))
+        .frame(width: box.width, height: box.height, alignment: .topLeading)
+        .position(x: AnnotationTextLayout.anchorX(for: textDraft, item: item),
+                  y: item.frame.minY + box.height / 2)
     }
 
     /// 草稿与数据实时同步：输入即写入 item.text（不产生撤销快照，提交时统一快照）
@@ -154,7 +156,7 @@ struct CanvasView: View {
     private func beginEditing(_ item: Annotation) {
         textDraft = item.text
         editingTextID = item.id
-        textFocused = true
+        // 聚焦由 IMETextEditor 创建时自动 makeFirstResponder
     }
 
     private func commitTextEditing(_ item: Annotation) {
@@ -167,14 +169,12 @@ struct CanvasView: View {
             doc.commitSnapshot()
         }
         editingTextID = nil
-        textFocused = false
     }
 
     private func cancelTextEditing(_ item: Annotation) {
         guard editingTextID == item.id else { return }
         if item.text.isEmpty { doc.remove(item) }
         editingTextID = nil
-        textFocused = false
     }
 
     // MARK: - 绘制手势
@@ -277,13 +277,34 @@ struct CanvasView: View {
     }
 }
 
-/// 文本标注的统一锚点：编辑框与最终渲染同宽同左缘，提交后不跳位
+/// 文本标注的统一尺寸/锚点：编辑框与最终渲染共用同一测量 → 提交不跳位。
+/// 初始一行高、两字宽；随文本增多自适应宽高（宽度封顶）。
 enum AnnotationTextLayout {
-    /// 文本框固定宽度（点）
-    static let width: CGFloat = 200
-    /// position 用中心坐标：容器宽 width、左缘对齐 frame.minX
-    static func anchorX(for item: Annotation) -> CGFloat { item.frame.minX + width / 2 }
-    static func anchorY(for item: Annotation) -> CGFloat { item.frame.midY }
+    static let maxWidth: CGFloat = 340   // 渲染宽度上限（超出自动换行增高）
+    static let hPad: CGFloat = 24        // 左右余量合计（含 TextEditor 内建边距）
+    static let vPad: CGFloat = 14        // 上下余量合计（含内建边距，禁滚动后防裁切）
+
+    /// 测量文本所需盒子尺寸：空文本按占位"两个字"计（初始两字宽 × 一行高）。
+    /// isEditing 时宽度上限放宽（拼音组合中的长字母串不换行 → 框不纵向抖动）；
+    /// 选定汉字后按确认文本宽度正常收缩，提交/渲染仍按 maxWidth 封顶。
+    static func boxSize(for text: String, fontSize: CGFloat, isEditing: Bool = false) -> CGSize {
+        let cap = isEditing ? CGFloat(800) : maxWidth
+        let font = NSFont.systemFont(ofSize: fontSize, weight: .medium)
+        let content = text.isEmpty ? "文字" : text   // 空时占位：两字宽
+        let attr = NSAttributedString(string: content, attributes: [.font: font])
+        var size = attr.boundingRect(
+            with: NSSize(width: cap - hPad, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin, .usesFontLeading]
+        ).size
+        size.width = min(max(size.width + hPad, fontSize * 2 + hPad), cap)
+        size.height = max(size.height + vPad, fontSize * 1.5 + vPad)
+        return size
+    }
+
+    /// position 中心 X：左缘对齐 frame.minX
+    static func anchorX(for text: String, item: Annotation) -> CGFloat {
+        item.frame.minX + boxSize(for: text, fontSize: item.fontSize).width / 2
+    }
 }
 
 /// 命中区域策略（缩小误触）：
@@ -362,6 +383,9 @@ struct AnnotationView: View {
         case .text:
             // 空文本不渲染（失焦提交逻辑会移除空项，此处防御色块残留）
             if !item.text.isEmpty {
+                // 与编辑框共用测量：宽=文本自适应（封顶），多行高度自适应
+                let box = AnnotationTextLayout.boxSize(for: item.text,
+                                                       fontSize: item.fontSize)
                 Group {
                     if item.textStyle == .boxed {
                         // 底框模式：彩底白字
@@ -377,10 +401,9 @@ struct AnnotationView: View {
                     }
                 }
                 .font(.system(size: item.fontSize, weight: .medium))
-                // 与编辑框同锚点：固定宽左对齐，左缘 = frame.minX
-                .frame(width: AnnotationTextLayout.width, alignment: .leading)
-                .position(x: AnnotationTextLayout.anchorX(for: item),
-                          y: AnnotationTextLayout.anchorY(for: item))
+                .frame(width: box.width, height: box.height, alignment: .center)
+                .position(x: AnnotationTextLayout.anchorX(for: item.text, item: item),
+                          y: item.frame.minY + box.height / 2)
             }
         case .arrow:
             // points 为画布绝对坐标；Shape 包在 frame+position 局部坐标系里，需平移到局部

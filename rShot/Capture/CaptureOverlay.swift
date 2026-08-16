@@ -67,7 +67,8 @@ final class RegionOverlayController {
 enum OverlayKeyMonitor {
     private static var monitor: Any?
 
-    static func install(_ handler: @escaping (NSEvent) -> NSEvent) {
+    /// 返回 nil 吞掉事件（不再分发），返回 event 放行
+    static func install(_ handler: @escaping (NSEvent) -> NSEvent?) {
         remove()
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown, handler: handler)
     }
@@ -348,7 +349,9 @@ struct InPlaceEditorView: View {
                         .shadow(color: .black.opacity(0.25), radius: 12, y: 4)
                 }
                 .padding(.horizontal, 18)
-                .padding(.bottom, islandBottomInset(geo: geo.size))
+                // 水平：屏幕中心 → 选区中心（clamp 防出屏）；垂直：底部锚定
+                .offset(x: islandHorizontalOffset(geo: geo.size))
+                .offset(y: -islandBottomInset(geo: geo.size))
             }
         }
         .onAppear {
@@ -356,28 +359,52 @@ struct InPlaceEditorView: View {
             doc.canvasSize = selection.size
             doc.undoStack.commit([])
             OverlayKeyMonitor.install { [weak doc] event in
+                // ESC：取消截图
                 if event.keyCode == 53 { appState.cancelCapture() }
+                // ⌘Z / ⌘⇧Z：撤销重做
                 if event.modifierFlags.contains(.command),
                    event.charactersIgnoringModifiers == "z" {
                     if event.modifierFlags.contains(.shift) { doc?.redo() } else { doc?.undo() }
+                }
+                // 回车：完成截图（等同"复制/完成"）。
+                // 文本输入中放行——TextField 聚焦时第一响应者是 field editor（NSTextView），
+                // 回车交给 onSubmit 提交文本，不视为完成
+                if event.keyCode == 36,
+                   !(NSApp.keyWindow?.firstResponder is NSTextView) {
+                    self.handleCopy()
+                    return nil   // 吞掉，不再分发
                 }
                 return event
             }
         }
     }
 
+    /// 浮岛水平偏移：overlay 默认屏幕居中 → 平移到选区中心；
+    /// clamp 保证岛中心不出屏（估算半宽 420 覆盖主岛+操作岛）。
+    private func islandHorizontalOffset(geo: CGSize) -> CGFloat {
+        let halfIsland: CGFloat = min(420, geo.width / 2 - 16)
+        let center = min(max(selection.midX, halfIsland),
+                         geo.width - halfIsland)
+        return center - geo.width / 2
+    }
+
     /// 浮岛底边距屏幕底部的 inset（底部锚定）。
     /// 优先级：选区下方（紧贴）→ 选区上方 → 屏幕中央（全屏/极大选区）。结果 clamp 在可视区内。
     private func islandBottomInset(geo: CGSize) -> CGFloat {
-        let margin: CGFloat = 16
+        let margin: CGFloat = 8
         let belowY = selection.maxY + margin          // 期望：浮岛底边的屏幕 y
         if belowY <= geo.height - 20 {
-            return max(6, geo.height - belowY)
+            let inset = max(6, geo.height - belowY)
+            NSLog("[rShot] island below: inset=\(inset) selMaxY=\(selection.maxY) geoH=\(geo.height)")
+            return inset
         }
-        let aboveBottom = selection.minY - 16         // 上方方案：浮岛贴选区上沿
+        let aboveBottom = selection.minY - 12         // 上方方案：浮岛贴选区上沿
         if aboveBottom >= 90 {                        // 至少容纳工具栏高度
-            return max(6, geo.height - aboveBottom)
+            let inset = max(6, geo.height - aboveBottom)
+            NSLog("[rShot] island above: inset=\(inset) selMinY=\(selection.minY) geoH=\(geo.height)")
+            return inset
         }
+        NSLog("[rShot] island center fallback (fullscreen)")
         return max(6, geo.height / 2 - 90)            // 全屏兜底：屏幕中央
     }
 

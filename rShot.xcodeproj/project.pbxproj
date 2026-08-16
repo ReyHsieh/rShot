@@ -25,6 +25,7 @@
 		A1FE00000000000000000003 /* WindowPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FE00000000000000000002 /* WindowPicker.swift */; };
 		A1FE00000000000000000004 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FE00000000000000000003 /* StatusBarController.swift */; };
 		A1FE00000000000000000005 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FE00000000000000000004 /* SettingsWindowController.swift */; };
+		A1FE00000000000000000006 /* IMETextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FE00000000000000000005 /* IMETextEditor.swift */; };
 		TA1000000000000000000001 /* AnnotationModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB1000000000000000000001 /* AnnotationModelTests.swift */; };
 		TA1000000000000000000002 /* AnnotationDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB1000000000000000000002 /* AnnotationDocumentTests.swift */; };
 		TA1000000000000000000003 /* OutputAndSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB1000000000000000000003 /* OutputAndSettingsTests.swift */; };
@@ -55,6 +56,7 @@
 		B1FE00000000000000000002 /* WindowPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPicker.swift; sourceTree = "<group>"; };
 		B1FE00000000000000000003 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		B1FE00000000000000000004 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		B1FE00000000000000000005 /* IMETextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IMETextEditor.swift; sourceTree = "<group>"; };
 		TB1000000000000000000001 /* AnnotationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationModelTests.swift; sourceTree = "<group>"; };
 		TB1000000000000000000002 /* AnnotationDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationDocumentTests.swift; sourceTree = "<group>"; };
 		TB1000000000000000000003 /* OutputAndSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputAndSettingsTests.swift; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 				B10000000000000000000008 /* CanvasView.swift */,
 				B10000000000000000000009 /* EditorToolbar.swift */,
 				B1BE00000000000000000003 /* MosaicRenderer.swift */,
+				B1FE00000000000000000005 /* IMETextEditor.swift */,
 			);
 			path = Annotation;
 			sourceTree = "<group>";
@@ -290,6 +293,7 @@
 				A1FE00000000000000000005 /* SettingsWindowController.swift in Sources */,
 				A1BE00000000000000000002 /* OCRPanelController.swift in Sources */,
 				A1BE00000000000000000003 /* MosaicRenderer.swift in Sources */,
+				A1FE00000000000000000006 /* IMETextEditor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,7 +436,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rshot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -462,7 +466,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rshot.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -488,7 +492,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rshot.tests;
 				PRODUCT_MODULE_NAME = rShotTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -514,7 +518,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rshot.tests;
 				PRODUCT_MODULE_NAME = rShotTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

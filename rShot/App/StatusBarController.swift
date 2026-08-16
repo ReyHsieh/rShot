@@ -6,16 +6,17 @@
 //  替代 SwiftUI MenuBarExtra：后者不设置 autosaveName，
 //  系统设置的"菜单栏项目"管理（显示/移除/位置）无法与其关联 → 状态不同步。
 //
-//  菜单弹出用「手动 activate + popUp」：accessory app（LSUIElement）在未激活状态下，
-//  系统默认的 status item 菜单弹出存在点击无响应的回归；手动激活后弹出门可靠。
+//  菜单走系统默认弹出路径（item.menu）：渲染最可靠。
+//  之前用手动 menu.popUp 规避"未激活时点击无响应"，但该 API 存在
+//  首帧渲染不完整（需移动鼠标才显示）的顽固问题，多机复现，弃用。
+//  激活问题改由 menuWillOpen 里 NSApp.activate 兜底。
 //
 
 import AppKit
 
-final class StatusBarController: NSObject {
+final class StatusBarController: NSObject, NSMenuDelegate {
     static let shared = StatusBarController()
     private var statusItem: NSStatusItem?
-    private var menu: NSMenu?
     /// NSMenuItem 不支持闭包，用轻量 target 对象承载动作
     private var actions: [MenuItemAction] = []
 
@@ -30,30 +31,20 @@ final class StatusBarController: NSObject {
             button.image = NSImage(systemSymbolName: "camera.viewfinder",
                                     accessibilityDescription: "rShot")
             button.image?.isTemplate = true   // 自动适配明暗菜单栏
-            button.target = self
-            button.action = #selector(statusItemClicked)
-            button.sendAction(on: [.leftMouseDown])
         }
-        // 注意：不设置 item.menu —— 设置后系统拦截点击走默认弹出（accessory app 未激活时
-        // 该路径有失效回归），改由 statusItemClicked 手动 activate + popUp
-        menu = buildMenu()
+        let menu = buildMenu()
+        menu.delegate = self
+        item.menu = menu   // 系统默认弹出路径（不设自定义 action，避免拦截）
         statusItem = item
-        NSLog("[rShot] StatusBarController installed, menu items = \(menu?.items.count ?? -1)")
+        NSLog("[rShot] StatusBarController installed (system menu path), items = \(menu.items.count)")
     }
 
-    /// 点击图标：激活 app 后在下一 runloop 弹出菜单。
-    /// 同步 popUp 时 app 尚未完成激活，菜单首帧渲染不完整（需移动鼠标才出现）；
-    /// 延迟一拍 + 锚定按钮正下方可稳定完整显示。
-    @objc private func statusItemClicked() {
-        NSLog("[rShot] status item clicked")
-        guard let button = statusItem?.button, let menu else { return }
-        button.highlight(true)
-        NSApp.activate(ignoringOtherApps: true)
-        DispatchQueue.main.async {
-            menu.popUp(positioning: nil,
-                       at: NSPoint(x: 0, y: button.bounds.height + 2),
-                       in: button)
-            button.highlight(false)
+    // MARK: - NSMenuDelegate
+
+    /// 菜单即将打开：确保 app 已激活（accessory app 未激活时系统弹出的兜底）
+    func menuWillOpen(_ menu: NSMenu) {
+        if !NSApp.isActive {
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 

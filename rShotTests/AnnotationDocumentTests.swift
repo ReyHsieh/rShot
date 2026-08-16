@@ -81,15 +81,35 @@ final class AnnotationDocumentTests: XCTestCase {
         XCTAssertEqual(doc.textStyle(for: .number), .boxed)
     }
 
-    // MARK: - 文本锚点（提交后不跳位）
+    // MARK: - 文本锚点与自适应尺寸（提交后不跳位）
 
-    func testTextLayoutAnchor() {
+    func testTextLayoutAdaptiveBox() {
+        let fs: CGFloat = 16
+        // 空文本：初始两字宽 × 一行高
+        let empty = AnnotationTextLayout.boxSize(for: "", fontSize: fs)
+        XCTAssertEqual(empty.width, fs * 2 + AnnotationTextLayout.hPad, accuracy: 0.5,
+                       "空文本宽度 = 两个字 + 内边距")
+        XCTAssertEqual(empty.height, fs * 1.5 + AnnotationTextLayout.vPad, accuracy: 1,
+                       "空文本高度 = 一行")
+
+        // 短文本随内容加宽
+        let one = AnnotationTextLayout.boxSize(for: "Hi", fontSize: fs)
+        XCTAssertGreaterThan(one.width, empty.width - 0.1)
+
+        // 长文本宽度封顶（自动换行增高）；中文断行不精确顶满，允许 -20 内
+        let long = AnnotationTextLayout.boxSize(for: String(repeating: "字", count: 80),
+                                                fontSize: fs)
+        XCTAssertLessThanOrEqual(long.width, AnnotationTextLayout.maxWidth)
+        XCTAssertGreaterThan(long.width, AnnotationTextLayout.maxWidth - 20)
+        XCTAssertGreaterThan(long.height, one.height, "封顶换行后高度增加")
+
+        // 锚点：左缘对齐 frame.minX
         let item = Annotation(kind: .text,
-                              frame: CGRect(x: 300, y: 200, width: 160, height: 28))
-        XCTAssertEqual(AnnotationTextLayout.anchorX(for: item), 300 + 100,
-                       "锚点 X = 左缘 + 固定宽/2")
-        XCTAssertEqual(AnnotationTextLayout.anchorY(for: item), 214,
-                       "锚点 Y = frame 中线")
+                              frame: CGRect(x: 300, y: 200, width: 160, height: 28),
+                              text: "Hi")
+        XCTAssertEqual(AnnotationTextLayout.anchorX(for: "Hi", item: item),
+                       300 + one.width / 2, accuracy: 1,
+                       "锚点 X = 左缘 + 盒宽/2")
     }
 
     // MARK: - 马赛克像素化（A-07）
