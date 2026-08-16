@@ -12,12 +12,17 @@ final class ClipboardService {
     private init() {}
 
     func copyImage(_ image: NSImage) {
+        let tiff = image.tiffRepresentation
+        let png = image.pngRepresentation()
+        copyPrepared(tiff: tiff, png: png)
+    }
+
+    /// 编码已在后台完成的数据直接写剪贴板（须在主线程调用）
+    func copyPrepared(tiff: Data?, png: Data?) {
         let pb = NSPasteboard.general
         pb.clearContents()
-        pb.setData(image.tiffRepresentation, forType: .tiff)
-        if let png = image.pngRepresentation() {
-            pb.setData(png, forType: .png)
-        }
+        if let tiff { pb.setData(tiff, forType: .tiff) }
+        if let png { pb.setData(png, forType: .png) }
     }
 
     func copyText(_ text: String) {

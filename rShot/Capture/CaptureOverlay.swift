@@ -393,23 +393,31 @@ struct InPlaceEditorView: View {
     }
 
     private func handleOCR() {
-        // 渲染含标注的成品图 → 复制（受"自动复制"开关控制）→ 收起编辑器 → 识别成品 → 弹结果
-        guard let rendered = doc.renderFlattened() else { return }
-        if AppSettings.shared.autoCopy {
-            ClipboardService.shared.copyImage(rendered)
-        }
-        appState.editorImage = rendered
-
-        // 先收起覆盖层，再开始识别（结果到达后弹 OCR 面板）
+        // 性能关键：渲染大图（ImageRenderer）与剪贴板编码都是重活。
+        // 先立即收起覆盖层让 UI 响应，再渲染；编码与识别放后台并行。
+        appState.editorImage = image
         appState.phase = .idle
         OverlayState.shared.reset()
         CaptureEngine.shared.dismissOverlay()
+        appState.flashToast("OCR 识别中…")
 
-        OCRService.shared.recognize(image: rendered) { res in
-            DispatchQueue.main.async {
-                appState.lastOCRResult = res
-                appState.flashToast("已复制标注截图")
-                appState.openOCRWindow()
+        // 渲染需在主线程（ImageRenderer 限制）；此刻无可见 UI，卡顿无感知
+        guard let rendered = doc.renderFlattened() else { return }
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            // 编码在后台完成（大图 PNG 编码耗时），写剪贴板回主线程
+            if AppSettings.shared.autoCopy {
+                let tiff = rendered.tiffRepresentation
+                let png = rendered.pngRepresentation()
+                DispatchQueue.main.async {
+                    ClipboardService.shared.copyPrepared(tiff: tiff, png: png)
+                }
+            }
+            OCRService.shared.recognize(image: rendered) { res in
+                DispatchQueue.main.async {
+                    appState.lastOCRResult = res
+                    appState.openOCRWindow()
+                }
             }
         }
     }
