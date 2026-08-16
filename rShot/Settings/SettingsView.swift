@@ -15,17 +15,17 @@ struct SettingsView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            GeneralTab().tabItem {
-                Label("通用", systemImage: "gear")
-            }.tag(0)
+            GeneralTab()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .tabItem { Label("通用", systemImage: "gear") }.tag(0)
 
-            ShortcutsTab().tabItem {
-                Label("快捷键", systemImage: "keyboard")
-            }.tag(1)
+            ShortcutsTab()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .tabItem { Label("快捷键", systemImage: "keyboard") }.tag(1)
 
-            OCRTab().tabItem {
-                Label("OCR", systemImage: "text.viewfinder")
-            }.tag(2)
+            OCRTab()
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .tabItem { Label("OCR", systemImage: "text.viewfinder") }.tag(2)
         }
         .frame(minWidth: 460)   // 宽固定；高度由内容决定，窗口随 tab 自适应
         .onChange(of: tab) { _ in
@@ -69,6 +69,7 @@ struct GeneralTab: View {
             }
         }
         .formStyle(.grouped)
+        .fixedSize(horizontal: false, vertical: true)   // 表单收缩到内容高度（grouped 默认贪婪）
         .padding()
         .onChange(of: launchAtLogin) { enabled in
             do {
@@ -115,6 +116,7 @@ struct ShortcutsTab: View {
             }
         }
         .formStyle(.grouped)
+        .fixedSize(horizontal: false, vertical: true)   // 表单收缩到内容高度
         .padding()
     }
 
@@ -156,6 +158,7 @@ struct OCRTab: View {
             }
         }
         .formStyle(.grouped)
+        .fixedSize(horizontal: false, vertical: true)   // 表单收缩到内容高度
         .padding()
     }
 }

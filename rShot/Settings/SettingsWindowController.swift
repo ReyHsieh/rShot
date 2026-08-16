@@ -46,7 +46,8 @@ final class SettingsWindowController {
         hosting.frame.size.width = 460
         hosting.layoutSubtreeIfNeeded()
         let fit = hosting.fittingSize
-        let height = min(max(fit.height, 320), 700)
+        let height = min(max(fit.height + 8, 320), 700)   // +8 布局余量
+        NSLog("[rShot] settings fit=\(fit.height) → window=\(height)")
         p.setContentSize(NSSize(width: 460, height: height))
     }
 }
