@@ -41,14 +41,20 @@ final class StatusBarController: NSObject {
         NSLog("[rShot] StatusBarController installed, menu items = \(menu?.items.count ?? -1)")
     }
 
-    /// 点击图标：激活 app 后手动弹出菜单
+    /// 点击图标：激活 app 后在下一 runloop 弹出菜单。
+    /// 同步 popUp 时 app 尚未完成激活，菜单首帧渲染不完整（需移动鼠标才出现）；
+    /// 延迟一拍 + 锚定按钮正下方可稳定完整显示。
     @objc private func statusItemClicked() {
         NSLog("[rShot] status item clicked")
         guard let button = statusItem?.button, let menu else { return }
         button.highlight(true)
         NSApp.activate(ignoringOtherApps: true)
-        menu.popUp(positioning: nil, at: .zero, in: button)
-        button.highlight(false)
+        DispatchQueue.main.async {
+            menu.popUp(positioning: nil,
+                       at: NSPoint(x: 0, y: button.bounds.height + 2),
+                       in: button)
+            button.highlight(false)
+        }
     }
 
     private func buildMenu() -> NSMenu {

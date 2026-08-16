@@ -333,7 +333,7 @@ struct InPlaceEditorView: View {
                                       doc: doc,
                                       onOCR: handleOCR)
                     }
-                    .frame(maxWidth: 640)
+                    .fixedSize(horizontal: true, vertical: false)   // 岛宽=最宽行内容，无空白
                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13))
                     .overlay(RoundedRectangle(cornerRadius: 13)
                         .strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
@@ -367,18 +367,18 @@ struct InPlaceEditorView: View {
     }
 
     /// 浮岛底边距屏幕底部的 inset（底部锚定）。
-    /// 优先级：选区下方 → 选区上方 → 屏幕中央（全屏/极大选区）。结果 clamp 在可视区内。
+    /// 优先级：选区下方（紧贴）→ 选区上方 → 屏幕中央（全屏/极大选区）。结果 clamp 在可视区内。
     private func islandBottomInset(geo: CGSize) -> CGFloat {
-        let margin: CGFloat = 56
+        let margin: CGFloat = 16
         let belowY = selection.maxY + margin          // 期望：浮岛底边的屏幕 y
         if belowY <= geo.height - 20 {
-            return max(8, geo.height - belowY)
+            return max(6, geo.height - belowY)
         }
         let aboveBottom = selection.minY - 16         // 上方方案：浮岛贴选区上沿
         if aboveBottom >= 90 {                        // 至少容纳工具栏高度
-            return max(8, geo.height - aboveBottom)
+            return max(6, geo.height - aboveBottom)
         }
-        return max(8, geo.height / 2 - 90)            // 全屏兜底：屏幕中央
+        return max(6, geo.height / 2 - 90)            // 全屏兜底：屏幕中央
     }
 
     private func handleCopy() {

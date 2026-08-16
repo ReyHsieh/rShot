@@ -119,7 +119,6 @@ struct CandidateBar: View {
                 colorPicker(.pen)
                 segLine(.pen)
             }
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
         // 背景由外层 EditorIsland 统一提供（决策 #6）
