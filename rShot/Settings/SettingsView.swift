@@ -27,7 +27,7 @@ struct SettingsView: View {
                 Label("OCR", systemImage: "text.viewfinder")
             }.tag(2)
         }
-        .frame(minWidth: 480, minHeight: 460)   // 方正比例；高度不写死，内容单屏放下
+        .frame(minWidth: 460, minHeight: 400)   // 贴合内容的高度，整体方正协调
     }
 }
 
