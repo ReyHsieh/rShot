@@ -11,16 +11,12 @@ import SwiftUI
 struct EditorToolbar: View {
     @Binding var selectedTool: AnnotationKind?
     @ObservedObject var doc: AnnotationDocument
-    @ObservedObject private var settings = AppSettings.shared
-    var onCopy: () -> Void
-    var onSave: () -> Void
-    var onCancel: () -> Void
     var onOCR: () -> Void
 
     var body: some View {
         HStack(spacing: 6) {
             toolButton(.rect, "rectangle", "矩形框选")
-            toolButton(.text, "textformat", "文本")
+            toolButton(.text, "R", "文本")   // 文本工具：字母 R
             toolButton(.number, "number.circle", "数字标记")
 
             Divider().frame(height: 22).padding(.horizontal, 4)
@@ -39,22 +35,7 @@ struct EditorToolbar: View {
 
             Divider().frame(height: 22).padding(.horizontal, 4)
 
-            textButton("OCR", systemImage: "text.viewfinder", help: "文字识别", action: onOCR)
-
-            Spacer(minLength: 12)
-
-            // 完成操作区
-            textButton("保存", systemImage: "square.and.arrow.down", help: "保存到文件", action: onSave)
-            iconButton("xmark.circle.fill", help: "取消截图",
-                       color: .secondary) { onCancel() }
-            Button(action: onCopy) {
-                Label(settings.autoCopy ? "复制 / 完成" : "完成",
-                      systemImage: settings.autoCopy ? "doc.on.doc" : "checkmark")
-                    .labelStyle(.titleAndIcon)
-                    .frame(height: 34)
-                    .padding(.horizontal, 10)
-            }
-            .buttonStyle(.borderedProminent)
+            iconButton("text.viewfinder", help: "文字识别（OCR）") { onOCR() }
         }
         .padding(.horizontal, 12).padding(.vertical, 8)
         // 背景由外层 EditorIsland 统一提供（决策 #6：候选条+工具栏同一容器，一条发丝线分隔）
@@ -78,32 +59,26 @@ struct EditorToolbar: View {
         .disabled(disabled)
     }
 
-    /// 文字按钮：统一 34 高、图标+文字
     @ViewBuilder
-    private func textButton(_ title: String, systemImage: String, help: String,
-                            action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .labelStyle(.titleAndIcon)
-                .frame(height: 34)
-                .padding(.horizontal, 8)
-        }
-        .buttonStyle(.plain)
-        .help(help)
-    }
-
-    @ViewBuilder
-    private func toolButton(_ kind: AnnotationKind, _ systemName: String, _ help: String) -> some View {
+    private func toolButton(_ kind: AnnotationKind, _ icon: String, _ help: String) -> some View {
         Button {
             selectedTool = (selectedTool == kind) ? nil : kind
         } label: {
-            Image(systemName: systemName)
-                .symbolRenderingMode(.hierarchical)
-                .font(.system(size: 16))
-                .frame(width: 34, height: 34)
-                .background(selectedTool == kind ? Color.accentColor : Color.clear,
-                            in: RoundedRectangle(cornerRadius: 8))
-                .foregroundColor(selectedTool == kind ? .white : .primary)
+            Group {
+                if icon.count == 1 {
+                    // 单字符 = 字母图标（如文本工具的 "R"）
+                    Text(icon)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                } else {
+                    Image(systemName: icon)
+                        .symbolRenderingMode(.hierarchical)
+                        .font(.system(size: 16))
+                }
+            }
+            .frame(width: 34, height: 34)
+            .background(selectedTool == kind ? Color.accentColor : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 8))
+            .foregroundColor(selectedTool == kind ? .white : .primary)
         }
         .buttonStyle(.plain)
         .help(help)
@@ -231,5 +206,44 @@ struct CandidateBar: View {
     }
     private func textSegToSize(_ s: String) -> CGFloat {
         s == "s" ? 13 : (s == "l" ? 24 : 16)
+    }
+}
+
+/// 完成操作浮岛（独立于主工具栏，单独成区）：保存 / 取消 / 复制·完成（纯图标）
+struct EditorActionsBar: View {
+    @ObservedObject private var settings = AppSettings.shared
+    var onSave: () -> Void
+    var onCancel: () -> Void
+    var onCopy: () -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            actionButton("square.and.arrow.down",
+                         help: "保存到默认路径") { onSave() }
+            actionButton("xmark",
+                         help: "取消截图",
+                         color: .secondary) { onCancel() }
+            actionButton(settings.autoCopy ? "doc.on.doc" : "checkmark",
+                         help: settings.autoCopy ? "复制 / 完成" : "完成",
+                         prominent: true) { onCopy() }
+        }
+        .padding(.horizontal, 6).padding(.vertical, 8)
+    }
+
+    @ViewBuilder
+    private func actionButton(_ systemName: String, help: String,
+                              color: Color? = nil, prominent: Bool = false,
+                              action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .symbolRenderingMode(.hierarchical)
+                .font(.system(size: 16, weight: prominent ? .semibold : .regular))
+                .frame(width: 34, height: 34)
+                .background(prominent ? Color.accentColor : Color.clear,
+                            in: RoundedRectangle(cornerRadius: 8))
+                .foregroundColor(prominent ? .white : (color ?? .primary))
+        }
+        .buttonStyle(.plain)
+        .help(help)
     }
 }

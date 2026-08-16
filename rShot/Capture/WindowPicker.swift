@@ -11,14 +11,15 @@ import AppKit
 import CoreGraphics
 
 enum WindowPicker {
-    /// 返回包含给定点（主屏左上原点）的最小普通窗口 rect；无则 nil
+    /// 返回包含给定点（主屏左上原点）的最上层可见普通窗口 rect；无则 nil。
+    /// CGWindowListCopyWindowInfo 返回顺序即 z 序（前 = 上层），
+    /// 取第一个命中 → 被遮挡的窗口不会被选中（符合直觉）。
     static func window(at point: CGPoint) -> CGRect? {
         let options: CGWindowListOption = [.optionOnScreenOnly, .excludeDesktopElements]
         guard let infos = CGWindowListCopyWindowInfo(options, kCGNullWindowID)
                 as? [[String: Any]] else { return nil }
 
         let myPID = ProcessInfo.processInfo.processIdentifier
-        var best: CGRect?
 
         for info in infos {
             guard let ownerPID = info[kCGWindowOwnerPID as String] as? Int32,
@@ -32,11 +33,8 @@ enum WindowPicker {
             guard rect.width > 60, rect.height > 60 else { continue }   // 排除小浮窗
             guard rect.contains(point) else { continue }
 
-            // 取面积最小的（最上层精细命中的窗口），近似"鼠标正下方的窗口"
-            if best == nil || rect.width * rect.height < best!.width * best!.height {
-                best = rect
-            }
+            return rect   // z 序第一个命中 = 最上层可见窗口
         }
-        return best
+        return nil
     }
 }

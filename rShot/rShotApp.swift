@@ -15,11 +15,9 @@ struct rShotApp: App {
     var body: some Scene {
         // 菜单栏图标由 StatusBarController（AppKit NSStatusItem + autosaveName）管理，
         // 不用 SwiftUI MenuBarExtra：后者导致系统"菜单栏项目"设置与其状态不同步。
-        // 设置窗口（对应 OD screen-settings.html）
-        Settings {
-            SettingsView()
-                .environmentObject(appState)
-        }
+        // 设置窗口由 SettingsWindowController 自建 NSWindow 管理
+        //（Settings scene + selector 在 LSUIElement app 下打不开）。
+        Settings { SettingsView() }
     }
 }
 

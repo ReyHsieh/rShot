@@ -6,16 +6,20 @@
 //  替代 SwiftUI MenuBarExtra：后者不设置 autosaveName，
 //  系统设置的"菜单栏项目"管理（显示/移除/位置）无法与其关联 → 状态不同步。
 //
+//  菜单弹出用「手动 activate + popUp」：accessory app（LSUIElement）在未激活状态下，
+//  系统默认的 status item 菜单弹出存在点击无响应的回归；手动激活后弹出门可靠。
+//
 
 import AppKit
 
-final class StatusBarController {
+final class StatusBarController: NSObject {
     static let shared = StatusBarController()
     private var statusItem: NSStatusItem?
+    private var menu: NSMenu?
     /// NSMenuItem 不支持闭包，用轻量 target 对象承载动作
     private var actions: [MenuItemAction] = []
 
-    private init() {}
+    private override init() { super.init() }
 
     func install() {
         guard statusItem == nil else { return }
@@ -26,9 +30,25 @@ final class StatusBarController {
             button.image = NSImage(systemSymbolName: "camera.viewfinder",
                                     accessibilityDescription: "rShot")
             button.image?.isTemplate = true   // 自动适配明暗菜单栏
+            button.target = self
+            button.action = #selector(statusItemClicked)
+            button.sendAction(on: [.leftMouseDown])
         }
-        item.menu = buildMenu()
+        // 注意：不设置 item.menu —— 设置后系统拦截点击走默认弹出（accessory app 未激活时
+        // 该路径有失效回归），改由 statusItemClicked 手动 activate + popUp
+        menu = buildMenu()
         statusItem = item
+        NSLog("[rShot] StatusBarController installed, menu items = \(menu?.items.count ?? -1)")
+    }
+
+    /// 点击图标：激活 app 后手动弹出菜单
+    @objc private func statusItemClicked() {
+        NSLog("[rShot] status item clicked")
+        guard let button = statusItem?.button, let menu else { return }
+        button.highlight(true)
+        NSApp.activate(ignoringOtherApps: true)
+        menu.popUp(positioning: nil, at: .zero, in: button)
+        button.highlight(false)
     }
 
     private func buildMenu() -> NSMenu {

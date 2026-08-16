@@ -318,26 +318,35 @@ struct InPlaceEditorView: View {
                     .position(x: selection.midX, y: selection.midY)
                     .allowsHitTesting(false)
             }
-            // 编辑浮岛：候选条（上）+ 工具栏（下）同一容器、一条发丝线（决策 #6）
-            // 挂在全屏 ZStack 上，底部锚定：候选条出现/收起时工具栏不动，向上生长
+            // 编辑浮岛（双岛并排，各自独立）：
+            // 主岛 = 候选条（上）+ 工具栏（下）同一容器、一条发丝线（决策 #6）
+            // 操作岛 = 保存/取消/复制（纯图标，单独成区）
+            // 全屏 ZStack 底部锚定：候选条出现/收起时工具栏不动，向上生长
             .overlay(alignment: .bottom) {
-                VStack(spacing: 0) {
-                    if let tool = selectedTool {
-                        CandidateBar(tool: tool, doc: doc)
-                        Divider().opacity(0.6).padding(.horizontal, 10)
+                HStack(alignment: .bottom, spacing: 12) {
+                    VStack(spacing: 0) {
+                        if let tool = selectedTool {
+                            CandidateBar(tool: tool, doc: doc)
+                            Divider().opacity(0.6).padding(.horizontal, 10)
+                        }
+                        EditorToolbar(selectedTool: $selectedTool,
+                                      doc: doc,
+                                      onOCR: handleOCR)
                     }
-                    EditorToolbar(selectedTool: $selectedTool,
-                                  doc: doc,
-                                  onCopy: handleCopy,
-                                  onSave: handleSave,
-                                  onCancel: { appState.cancelCapture() },
-                                  onOCR: handleOCR)
+                    .frame(maxWidth: 640)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13))
+                    .overlay(RoundedRectangle(cornerRadius: 13)
+                        .strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.25), radius: 12, y: 4)
+
+                    EditorActionsBar(onSave: handleSave,
+                                     onCancel: { appState.cancelCapture() },
+                                     onCopy: handleCopy)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13))
+                        .overlay(RoundedRectangle(cornerRadius: 13)
+                            .strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
+                        .shadow(color: .black.opacity(0.25), radius: 12, y: 4)
                 }
-                .frame(maxWidth: 720)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 13))
-                .overlay(RoundedRectangle(cornerRadius: 13)
-                    .strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
-                .shadow(color: .black.opacity(0.25), radius: 12, y: 4)
                 .padding(.horizontal, 18)
                 .padding(.bottom, islandBottomInset(geo: geo.size))
             }
