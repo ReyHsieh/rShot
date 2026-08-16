@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>rShot</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconFile</key>
@@ -14,12 +16,10 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
-	<key>CFBundleDisplayName</key>
-	<string>rShot</string>
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.1</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>
@@ -30,12 +30,11 @@
 	<string>Copyright © 2026 rShot. All rights reserved.</string>
 	<key>NSMainNibFile</key>
 	<string></string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>rShot 需要屏幕录制权限以进行区域与全屏截图。所有数据仅在本地处理，不会上传。</string>
 	<key>NSSupportsAutomaticTermination</key>
 	<true/>
 	<key>NSSupportsSuddenTermination</key>
 	<true/>
-	<!-- 截屏权限说明：首次调用 ScreenCaptureKit 时系统展示 -->
-	<key>NSScreenCaptureUsageDescription</key>
-	<string>rShot 需要屏幕录制权限以进行区域与全屏截图。所有数据仅在本地处理，不会上传。</string>
 </dict>
 </plist>
